@@ -244,7 +244,7 @@
 
         <div class="ui-modules-container">
           <agent-assist-ui-modules
-            v-if="authToken && cachedComponents[0] === 'container'"
+            v-if="authToken && cachedComponents[0] === 'container' && features.length !== 0"
             channel="chat"
             agent-desktop="Custom"
             v-bind:custom-api-endpoint="proxyServerEndpoint"
@@ -363,6 +363,7 @@
                 val="ARTICLE_SUGGESTION"
                 label="Article suggestion"
               ></q-checkbox>
+              <br />
               <q-checkbox
                 v-model="featuresArray"
                 val="LIVE_TRANSLATION"
