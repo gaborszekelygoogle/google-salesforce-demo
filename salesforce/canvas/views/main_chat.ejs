@@ -134,6 +134,12 @@
         padding: 16px;
       }
 
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
       .header-bar > h2 {
         color: #5f6368;
         display: flex;
@@ -142,7 +148,7 @@
         font-size: 22px;
         font-weight: 300;
         line-height: 24px;
-        margin-top: 16px;
+        margin: 16px 0 18px;
         padding-left: 8px;
         position: relative;
         top: -1.5px;
@@ -159,6 +165,7 @@
         flex: 1;
         gap: 60px;
         justify-content: space-between;
+        max-height: calc(100% - 60px);  /* Subtract height of header */
       }
 
       .messages-container {
@@ -193,12 +200,6 @@
 
       agent-assist-transcript {
         flex: 1;
-      }
-
-      #app {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
       }
     </style>
   </head>
