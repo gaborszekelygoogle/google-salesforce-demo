@@ -554,9 +554,9 @@
 
             // Populate agent input box with Live Translation translation.
             addAgentAssistEventListener(
-              'live-translation-selected',
-              ({ detail: { selectedResponse } }) => {
-                agentMessage.value += selectedResponse.translation;
+              'agent-translation-received',
+              ({ detail: { translation } }) => {
+                agentMessage.value += translation;
               }
             );
 
