@@ -557,7 +557,7 @@
             addAgentAssistEventListener(
               'agent-translation-received',
               ({ detail: { translation } }) => {
-                agentMessage.value += translation;
+                agentMessage.value = translation;
               }
             );
 
