@@ -549,6 +549,10 @@
             addAgentAssistEventListener(
               'smart-reply-selected',
               ({ detail: { answer } }) => {
+                // If agent input box already has a value, remove surrounding whitespace and add a space at the end.
+                if (agentMessage.value) {
+                  agentMessage.value = agentMessage.value.trim() + ' ';
+                }
                 agentMessage.value += answer.reply;
               }
             );
