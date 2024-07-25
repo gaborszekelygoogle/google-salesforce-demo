@@ -214,12 +214,17 @@
           Contact Center AI
         </h2>
         <div class="conversations-container">
+          <q-btn
+            :label="pinnedConversation ? 'Unpin' : 'Pin'"
+            color="primary"
+            @click="togglePinnedConversation()">
+          </q-btn>
           <q-select
             v-model="conversationsModel"
             :options="conversationsOptions"
             label="Conversations"
           ></q-select>
-          <q-btn label="Options" color="primary" @click="dialogModel = true" />
+          <q-btn label="Options" color="primary" @click="dialogModel = true"></q-btn>
         </div>
       </div>
       <div class="app-container">
@@ -419,6 +424,7 @@
             const cachedComponents = JSON.parse(
               localStorage.getItem('ui_modules_components')
             ) || ['container'];
+            const cachedPinnedConversation = localStorage.getItem('ui_modules_pinned_conversation');
 
             const proxyServerEndpoint = '<%= proxyServer %>';
             const conversationProfile = ref(cachedConversationProfile);
@@ -430,6 +436,7 @@
             const customerMessage = ref('');
             const authToken = ref(null);
             const dialogModel = ref(false);
+            const pinnedConversation = ref(!!cachedPinnedConversation);
             const featuresArray = ref(
               features.value.split(',').map((val) => val.trim())
             );
@@ -530,8 +537,8 @@
               message.value = '';
             }
 
-            function addConversation() {
-              const conversationName = createConversationName();
+            function addConversation(conversationName) {
+              conversationName = conversationName || createConversationName();
               conversationsOptions.value.splice(
                 conversationsOptions.value.length - 1,
                 0,
@@ -540,9 +547,19 @@
               conversationsModel.value = conversationName;
             }
 
+            function togglePinnedConversation() {
+              console.log('toggle pinned conversation called');
+              if (pinnedConversation.value) {
+                localStorage.removeItem('ui_modules_pinned_conversation');
+              } else {
+                localStorage.setItem('ui_modules_pinned_conversation', conversationsModel.value);
+              }
+              pinnedConversation.value = !pinnedConversation.value;
+            }
+
             // Initialize the initial conversation.
             addAgentAssistEventListener('api-connector-initialized', () => {
-              addConversation();
+              addConversation(cachedPinnedConversation);
             });
 
             // Populate agent input box with Smart Reply selection.
@@ -618,6 +635,8 @@
               features,
               featuresArray,
               proxyServerEndpoint,
+              pinnedConversation,
+              togglePinnedConversation,
               addConversation,
               handleOptionsSave,
               sendMessage,
