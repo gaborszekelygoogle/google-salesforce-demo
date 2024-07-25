@@ -7,7 +7,7 @@ https://github.com/gaborszekelygoogle/google-salesforce-demo
 
 ```
 gcloud config set project ccai-ui-dev
-cs salesforce/canvas
+cd salesforce/canvas
 tsc && gcloud app deploy
 ```
 
