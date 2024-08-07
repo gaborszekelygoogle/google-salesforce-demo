@@ -102,16 +102,24 @@
         });
       }
 
-      var scriptsLoaded = Promise.all([
-        loadScript('common'),
-        loadScript('container'),
-        loadScript('summarization'),
-        loadScript('transcript'),
-        loadScript('knowledge_assist'),
-        loadScript('knowledge_assist_v2'),
-        loadScript('smart_reply'),
-        loadScript('live_translation'),
-      ]);
+      const cachedComponents = JSON.parse(
+              localStorage.getItem('ui_modules_components')
+            ) || ['container'];
+      cachedComponents.push('transcript');
+
+      const components = [
+        'container',
+        'summarization',
+        'transcript',
+        'knowledge_assist',
+        'knowledge_assist_v2',
+        'smart_reply',
+        'live_translation'
+      ];
+      const componentsToLoad = components.filter((component) => cachedComponents.includes(component));
+      var scriptsToLoad = componentsToLoad[0] === 'container' ?
+       componentsToLoad : ['common',  ...componentsToLoad];
+      var scriptsLoaded = Promise.all(scriptsToLoad.map((script) => loadScript(script)));
     </script>
 
     <script src="javascripts/canvas-all.js"></script>
@@ -200,6 +208,10 @@
 
       agent-assist-transcript {
         flex: 1;
+
+        .conversation-container {
+          height: 100%;
+        }
       }
     </style>
   </head>
@@ -230,7 +242,7 @@
       <div class="app-container">
         <div class="messages-container">
           <!-- The UI module that renders the conversation transcript. -->
-          <agent-assist-transcript></agent-assist-transcript>
+          <agent-assist-transcript v-bind:namespace="namespace"></agent-assist-transcript>
           <div class="conversation-input-boxes">
             <q-input
               outlined
@@ -251,29 +263,36 @@
         <div class="ui-modules-container">
           <agent-assist-ui-modules
             v-if="authToken && cachedComponents[0] === 'container' && features.length !== 0"
+            class="agent-assist-ui-modules"
             channel="chat"
             agent-desktop="Custom"
             v-bind:custom-api-endpoint="proxyServerEndpoint"
             v-bind:features="features"
             v-bind:conversation-profile="conversationProfile"
             v-bind:auth-token="authToken"
+            v-bind:namespace="namespace"
           ></agent-assist-ui-modules>
           <agent-assist-summarization
             v-if="cachedComponents.includes('summarization')"
+            v-bind:namespace="namespace"
             show-generate-summary-button="true"
           ></agent-assist-summarization>
           <agent-assist-smart-reply
             v-if="cachedComponents.includes('smart_reply')"
+            v-bind:namespace="namespace"
           ></agent-assist-smart-reply>
           <agent-assist-knowledge-assist
             v-if="cachedComponents.includes('knowledge_assist')"
+            v-bind:namespace="namespace"
             features="ARTICLE_SUGGESTION"
           ></agent-assist-knowledge-assist>
           <agent-assist-knowledge-assist-v2
             v-if="cachedComponents.includes('knowledge_assist_v2')"
+            v-bind:namespace="namespace"
           ></agent-assist-knowledge-assist-v2>
           <agent-assist-live-translation
             v-if="cachedComponents.includes('live_translation')"
+            v-bind:namespace="namespace"
           ></agent-assist-live-translation>
         </div>
       </div>
@@ -300,6 +319,15 @@
               :options="['local', 'staging', 'prod']"
               label="Environment"
             ></q-select>
+
+            <br /><br />
+            <b>Namespace</b>
+            <br />
+            <q-input
+              outlined
+              v-model="namespace"
+              label="Namespace"
+            ></q-input>
 
             <br /><br />
             <b>Component</b>
@@ -419,6 +447,9 @@
             const cachedConversationProfile =
               localStorage.getItem('ui_modules_conversation_profile') ||
               '<%= conversationProfile %>';
+            const cachedNamespace =
+              localStorage.getItem('ui_modules_namespace') ||
+              '';
             const cachedFeatures =
               localStorage.getItem('ui_modules_features') || '<%= features %>';
             const cachedComponents = JSON.parse(
@@ -428,6 +459,8 @@
 
             const proxyServerEndpoint = '<%= proxyServer %>';
             const conversationProfile = ref(cachedConversationProfile);
+            const namespace = ref(cachedNamespace);
+            const uiModuleEventOptions = !!cachedNamespace ? {namespace: cachedNamespace} : undefined;
             const features = ref(cachedFeatures);
             const activeConversationName = ref('');
             const conversationsOptions = ref(['Add new']);
@@ -497,6 +530,7 @@
                       authToken: newValue,
                       customApiEndpoint: proxyServerEndpoint,
                     },
+                    uiModuleEventOptions,
                   });
                 } else {
                   connector.setAuthToken(newValue);
@@ -513,7 +547,7 @@
                   detail: {
                     conversationName: newValue,
                   },
-                });
+                }, uiModuleEventOptions);
                 activeConversationName.value = newValue;
               }
             });
@@ -533,7 +567,7 @@
                     messageSendTime: new Date().toISOString(),
                   },
                 },
-              });
+              }, uiModuleEventOptions);
               message.value = '';
             }
 
@@ -560,7 +594,7 @@
             // Initialize the initial conversation.
             addAgentAssistEventListener('api-connector-initialized', () => {
               addConversation(cachedPinnedConversation);
-            });
+            }, uiModuleEventOptions);
 
             // Populate agent input box with Smart Reply selection.
             addAgentAssistEventListener(
@@ -571,7 +605,7 @@
                   agentMessage.value = agentMessage.value.trim() + ' ';
                 }
                 agentMessage.value += answer.reply;
-              }
+              }, uiModuleEventOptions
             );
 
             // Populate agent input box with Live Translation translation.
@@ -579,7 +613,7 @@
               'agent-translation-received',
               ({ detail: { translation } }) => {
                 agentMessage.value = translation;
-              }
+              }, uiModuleEventOptions
             );
 
             function handleOptionsSave() {
@@ -597,6 +631,14 @@
                 localStorage.setItem(
                   'ui_modules_conversation_profile',
                   conversationProfile.value
+                );
+                reload = true;
+              }
+
+              if (namespace.value !== cachedNamespace) {
+                localStorage.setItem(
+                  'ui_modules_namespace',
+                  namespace.value || ''
                 );
                 reload = true;
               }
@@ -631,6 +673,7 @@
               cachedComponents,
               componentsArray,
               conversationProfile,
+              namespace,
               conversationsModel,
               conversationsOptions,
               customerMessage,
