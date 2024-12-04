@@ -280,8 +280,8 @@
             v-bind:namespace="namespace"
           ></agent-assist-ui-modules>
           <div
-            v-if="cachedComponents.included('container_v2')"
-          ></div>
+            v-if="cachedComponents.includes('container_v2')"
+          >Container V2</div>
           <agent-assist-summarization
             v-if="cachedComponents.includes('summarization')"
             v-bind:namespace="namespace"
