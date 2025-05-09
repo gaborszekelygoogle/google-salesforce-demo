@@ -22,11 +22,9 @@
     />
 
     <script>
-      window._uiModuleFlags = { debug: true };
-    </script>
-    <script>
       const environment =
         localStorage.getItem('ui_modules_environment') || 'prod';
+      window._uiModuleFlags = { debug: true, environment};
 
       const SCRIPT_SOURCES = {
         staging: {
