@@ -33,7 +33,7 @@
           container:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/container.js',
           container_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/container.js',
+            'https://www.gstatic.com/agent-assist-ui-modules/staging/v2/container.js',
           summarization:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/summarization.js',
           knowledge_assist:
@@ -55,7 +55,7 @@
           container:
             'https://www.gstatic.com/agent-assist-ui-modules/v1/container.js',
           container_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/latest/container.js',
+            'https://www.gstatic.com/agent-assist-ui-modules/v2/container.js',
           summarization:
             'https://www.gstatic.com/agent-assist-ui-modules/v1/summarization.js',
           knowledge_assist:
@@ -106,7 +106,7 @@
 
       const cachedComponents = JSON.parse(
               localStorage.getItem('ui_modules_components')
-            ) || ['container'] || ['container_v2'];
+            ) || ['container'];
       cachedComponents.push('transcript');
 
       const components = [
@@ -120,10 +120,13 @@
         'live_translation'
       ];
       const componentsToLoad = components.filter((component) => cachedComponents.includes(component));
-      var scriptsToLoad =
-        componentsToLoad[0] === 'container' || 'container_v2'
-          ? componentsToLoad
-          : ['common',  ...componentsToLoad];
+      switch (componentsToLoad[0]) {
+        case 'container':
+          scriptsToLoad = componentsToLoad;
+          break;
+        default:
+          scriptsToLoad = ['common', ...componentsToLoad];
+      }
       var scriptsLoaded = Promise.all(scriptsToLoad.map((script) => loadScript(script)));
     </script>
 
@@ -277,9 +280,12 @@
             v-bind:auth-token="authToken"
             v-bind:namespace="namespace"
           ></agent-assist-ui-modules>
-          <div
-            v-if="cachedComponents.includes('container_v2')"
-          >Container V2</div>
+          <agent-assist-ui-modules-v2
+            v-if="cachedComponents[0] === 'container_v2' && features.length !== 0"
+            class="agent-assist-ui-modules"
+            v-bind:features="features"
+            v-bind:namespace="namespace"
+          ></agent-assist-ui-modules-v2>
           <agent-assist-summarization
             v-if="cachedComponents.includes('summarization')"
             v-bind:namespace="namespace"
@@ -378,7 +384,7 @@
             ></q-checkbox>
 
             <br /><br />
-            <div v-if="componentsArray[0] === 'container'">
+            <div v-if="componentsArray[0] === 'container' || componentsArray[0] === 'container_v2'">
               <b>Features</b>
               <br />
               <q-checkbox
@@ -532,7 +538,7 @@
             let connector;
 
             // Connector must be initialized manually for non-container-based usage.
-            if (!cachedComponents.includes('container') && cachedComponents.includes('container_v2')) {
+            if (!cachedComponents.includes('container')) {
               watch(authToken, (newValue) => {
                 if (!connector) {
                   connector = new UiModulesConnector();
@@ -609,6 +615,18 @@
             addAgentAssistEventListener('api-connector-initialized', () => {
               addConversation(cachedPinnedConversation);
             }, uiModuleEventOptions);
+
+            // Populate agent input box with AI coach suggestion.
+            addAgentAssistEventListener(
+              'agent-coaching-response-selected',
+              ({ detail: { selectedResponse } }) => {
+                // If agent input box already has a value, remove surrounding whitespace and add a space at the end.
+                if (agentMessage.value) {
+                  agentMessage.value = agentMessage.value.trim() + ' ';
+                }
+                agentMessage.value += selectedResponse;
+              }, uiModuleEventOptions
+            );
 
             // Populate agent input box with Smart Reply selection.
             addAgentAssistEventListener(
