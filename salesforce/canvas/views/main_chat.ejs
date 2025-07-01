@@ -273,7 +273,9 @@
             v-if="authToken && cachedComponents[0] === 'container' && features.length !== 0"
             class="agent-assist-ui-modules"
             channel="chat"
+            event-based-library="SocketIo"
             agent-desktop="Custom"
+            v-bind:notifier-server-endpoint="proxyServerEndpoint"
             v-bind:custom-api-endpoint="proxyServerEndpoint"
             v-bind:features="features"
             v-bind:conversation-profile="conversationProfile"
@@ -549,6 +551,10 @@
                     apiConfig: {
                       authToken: newValue,
                       customApiEndpoint: proxyServerEndpoint,
+                    },
+                    eventBasedConfig: {
+                      notifierServerEndpoint: proxyServerEndpoint,
+                      library: 'SocketIo'
                     },
                     uiModuleEventOptions,
                   });
