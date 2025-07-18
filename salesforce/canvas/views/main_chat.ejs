@@ -39,7 +39,7 @@
           knowledge_assist:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/knowledge_assist.js',
           knowledge_assist_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/knowledge_assist.js',
+            'https://www.gstatic.com/agent-assist-ui-modules/staging/v2/knowledge_assist.js',
           transcript:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/transcript.js',
           agent_coaching:
@@ -621,6 +621,21 @@
             addAgentAssistEventListener('api-connector-initialized', () => {
               addConversation(cachedPinnedConversation);
             }, uiModuleEventOptions);
+
+            // Add automatic test for ingest context references
+            addAgentAssistEventListener(
+              'conversation-initialized',
+              ({ detail: { conversation } }) => {
+                    dispatchAgentAssistEvent('ingest-context-references-requested', {
+                  detail: {
+                    conversationName: conversation.name,
+                    payload: {
+                      contextReferences: {'key': {contextContents: [{content: 'test'}]}},
+                    }
+                  },
+                }, uiModuleEventOptions);
+              }, uiModuleEventOptions
+            );
 
             // Populate agent input box with AI coach suggestion.
             addAgentAssistEventListener(
