@@ -285,6 +285,7 @@
           <agent-assist-ui-modules-v2
             v-if="cachedComponents[0] === 'container_v2' && features.length !== 0"
             class="agent-assist-ui-modules"
+            show-correctness-feedback="true"
             v-bind:features="features"
             v-bind:namespace="namespace"
           ></agent-assist-ui-modules-v2>
@@ -398,7 +399,19 @@
               <q-checkbox
                 v-model="featuresArray"
                 val="KNOWLEDGE_ASSIST_V2"
-                label="Generative knowledge assist"
+                label="Knowledge Assist V2 (P+GKA)"
+              ></q-checkbox>
+              <br />
+              <q-checkbox
+                v-model="featuresArray"
+                val="KNOWLEDGE_SEARCH"
+                label="GKA"
+              ></q-checkbox>
+              <br />
+              <q-checkbox
+                v-model="featuresArray"
+                val="PROACTIVE_GENERATIVE_KNOWLEDGE_ASSIST"
+                label="PGKA"
               ></q-checkbox>
               <br />
               <q-checkbox
