@@ -39,7 +39,7 @@
           knowledge_assist:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/knowledge_assist.js',
           knowledge_assist_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/knowledge_assist.js',
+            'https://www.gstatic.com/agent-assist-ui-modules/staging/v2/knowledge_assist.js',
           transcript:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/transcript.js',
           agent_coaching:
@@ -273,7 +273,9 @@
             v-if="authToken && cachedComponents[0] === 'container' && features.length !== 0"
             class="agent-assist-ui-modules"
             channel="chat"
+            event-based-library="SocketIo"
             agent-desktop="Custom"
+            v-bind:notifier-server-endpoint="proxyServerEndpoint"
             v-bind:custom-api-endpoint="proxyServerEndpoint"
             v-bind:features="features"
             v-bind:conversation-profile="conversationProfile"
@@ -283,6 +285,7 @@
           <agent-assist-ui-modules-v2
             v-if="cachedComponents[0] === 'container_v2' && features.length !== 0"
             class="agent-assist-ui-modules"
+            show-correctness-feedback="true"
             v-bind:features="features"
             v-bind:namespace="namespace"
           ></agent-assist-ui-modules-v2>
@@ -396,7 +399,19 @@
               <q-checkbox
                 v-model="featuresArray"
                 val="KNOWLEDGE_ASSIST_V2"
-                label="Generative knowledge assist"
+                label="Knowledge Assist V2 (P+GKA)"
+              ></q-checkbox>
+              <br />
+              <q-checkbox
+                v-model="featuresArray"
+                val="KNOWLEDGE_SEARCH"
+                label="GKA"
+              ></q-checkbox>
+              <br />
+              <q-checkbox
+                v-model="featuresArray"
+                val="PROACTIVE_GENERATIVE_KNOWLEDGE_ASSIST"
+                label="PGKA"
               ></q-checkbox>
               <br />
               <q-checkbox
@@ -550,6 +565,10 @@
                       authToken: newValue,
                       customApiEndpoint: proxyServerEndpoint,
                     },
+                    eventBasedConfig: {
+                      notifierServerEndpoint: proxyServerEndpoint,
+                      library: 'SocketIo'
+                    },
                     uiModuleEventOptions,
                   });
                 } else {
@@ -615,6 +634,21 @@
             addAgentAssistEventListener('api-connector-initialized', () => {
               addConversation(cachedPinnedConversation);
             }, uiModuleEventOptions);
+
+            // Add automatic test for ingest context references
+            addAgentAssistEventListener(
+              'conversation-initialized',
+              ({ detail: { conversation } }) => {
+                    dispatchAgentAssistEvent('ingest-context-references-requested', {
+                  detail: {
+                    conversationName: conversation.name,
+                    payload: {
+                      contextReferences: {'key': {contextContents: [{content: 'test'}]}},
+                    }
+                  },
+                }, uiModuleEventOptions);
+              }, uiModuleEventOptions
+            );
 
             // Populate agent input box with AI coach suggestion.
             addAgentAssistEventListener(
