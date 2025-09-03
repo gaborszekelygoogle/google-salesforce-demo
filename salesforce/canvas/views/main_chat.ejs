@@ -187,6 +187,7 @@
       .messages-container {
         display: flex;
         flex-direction: column;
+        min-width: 200px;
       }
 
       .messages-container,
@@ -196,6 +197,7 @@
 
       .ui-modules-container {
         padding-top: 24px;
+        overflow: hidden;
       }
 
       .proxy-number {
@@ -286,7 +288,10 @@
             v-if="cachedComponents[0] === 'container_v2' && features.length !== 0"
             class="agent-assist-ui-modules"
             show-correctness-feedback="true"
-            v-bind:features="features"
+            show-header="false"
+            v-bind:features="useConfiguredFeatures ? [] : features"
+            v-bind:disabled-features="useConfiguredFeatures ? features : []"
+            v-bind:use-configured-features="useConfiguredFeatures"
             v-bind:namespace="namespace"
           ></agent-assist-ui-modules-v2>
           <agent-assist-summarization
@@ -345,6 +350,15 @@
               v-model="namespace"
               label="Namespace"
             ></q-input>
+
+            <br /><br />
+            <b>Use configured features (v2 only) - inverts selected features</b>
+            <br />
+            <q-checkbox
+              outlined
+              v-model="useConfiguredFeatures"
+              label="Use configured features"
+            ></q-checkbox>
 
             <br /><br />
             <b>Component</b>
@@ -487,6 +501,7 @@
               '';
             const cachedFeatures =
               localStorage.getItem('ui_modules_features') || '<%= features %>';
+            const cachedUseConfiguredFeatures = localStorage.getItem('ui_modules_use_configured_features') === 'true';
             const cachedComponents = JSON.parse(
               localStorage.getItem('ui_modules_components')
             ) || ['container'];
@@ -497,6 +512,7 @@
             const namespace = ref(cachedNamespace);
             const uiModuleEventOptions = !!cachedNamespace ? {namespace: cachedNamespace} : undefined;
             const features = ref(cachedFeatures);
+            const useConfiguredFeatures = ref(cachedUseConfiguredFeatures)
             const activeConversationName = ref('');
             const conversationsOptions = ref(['Add new']);
             const conversationsModel = ref(null);
@@ -709,6 +725,14 @@
                 reload = true;
               }
 
+              if (useConfiguredFeatures.value !== cachedUseConfiguredFeatures) {
+                localStorage.setItem(
+                  'ui_modules_use_configured_features',
+                  useConfiguredFeatures.value || false
+                );
+                reload = true;
+              }
+
               const componentsArrayStr = JSON.stringify(componentsArray.value);
 
               if (componentsArrayStr !== JSON.stringify(cachedComponents)) {
@@ -745,6 +769,7 @@
               customerMessage,
               dialogModel,
               environmentsModel,
+              useConfiguredFeatures,
               features,
               featuresArray,
               proxyServerEndpoint,
