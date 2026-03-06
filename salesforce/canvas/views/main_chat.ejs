@@ -354,15 +354,6 @@
             ></q-input>
 
             <br /><br />
-            <b>Use configured features (v2 only) - inverts selected features</b>
-            <br />
-            <q-checkbox
-              outlined
-              v-model="useConfiguredFeatures"
-              label="Use configured features"
-            ></q-checkbox>
-
-            <br /><br />
             <b>Component</b>
             <br />
             <q-checkbox
@@ -402,9 +393,20 @@
               label="Live Translation"
             ></q-checkbox>
 
+            <div v-if="componentsArray.includes('container_v2')">
+              <br /><br />
+              <b>Use configured features (v2 container only)</b>
+              <br />
+              <q-checkbox
+                outlined
+                v-model="useConfiguredFeatures"
+                label="Use configured features"
+              ></q-checkbox>
+            </div>
+
             <br /><br />
             <div v-if="componentsArray[0] === 'container' || componentsArray[0] === 'container_v2'">
-              <b>Features</b>
+              <b>{{ useConfiguredFeatures ? 'Configured features to hide' : 'Container features to enable' }}</b>
               <br />
               <q-checkbox
                 v-model="featuresArray"
@@ -606,6 +608,13 @@
                   },
                 }, uiModuleEventOptions);
                 activeConversationName.value = newValue;
+              }
+            });
+
+            // Disable useConfiguredFeatures if container_v2 is not selected
+            watch(componentsArray, (newValue) => {
+              if (!newValue.includes('container_v2')) {
+                useConfiguredFeatures.value = false;
               }
             });
 
