@@ -44,7 +44,7 @@ router.post('/', (req, res) => {
 
   const signedRequest = req.body.signed_request;
   const [encodedSignature, encodedEnvelope] = signedRequest.split('.');
-  const check = crypto.createHmac('sha256', consumerSecret)
+  const check = crypto.createHmac('sha256', consumerSecret!)
                     .update(encodedEnvelope)
                     .digest('base64');
 
