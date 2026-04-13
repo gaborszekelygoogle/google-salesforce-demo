@@ -7,6 +7,10 @@
       rel="stylesheet"
     />
     <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <link
       href="https://fonts.googleapis.com/css?family=Product+Sans"
       rel="stylesheet"
     />
@@ -140,13 +144,44 @@
       html,
       body {
         margin: 0;
-        /* 
-        --uim-body-medium: 400 0.875rem/1.25rem 'Noto,Helvetica Neue,sans-serif' !important;
-        --uim-title-small: 500 0.875rem/1.25rem 'Noto,Helvetica Neue,sans-serif' !important;
-        --uim-title-medium: 500 1rem / 1.5rem 'Noto,Helvetica Neue, sans-serif' !important;
-        --uim-label-large-font: 'Noto,Helvetica Neue,sans-serif' !important;
-        */
       }
+
+      /* UJET overrides */
+      /* agent-assist-ui-modules-v2 {
+        --uim-body-medium: 300 0.875rem/1.25rem 'Noto sans';
+        --uim-title-small: 500 0.875rem/1.25rem 'Noto sans';
+        --uim-title-medium: 500 1rem / 1.5rem 'Noto sans';
+        --uim-label-large-font: 'Noto sans';
+        --uim-background: #F3F3F3;
+        
+        --uim-surface: #FFFFFF;
+        --uim-surface-container: #FFFFFF;
+        
+        --uim-on-surface: #232421;
+        --uim-on-surface-variant: #232421;
+        
+        --uim-outline: #A1A1A1;
+        --uim-outline-variant: #D2D2D2;
+      
+        --uim-link-color: #0C4A8C;
+      
+        
+        --uim-tag-agent-coaching-bg: #EDF4FD;
+        --uim-tag-agent-coaching-color: #232421;
+        
+        --uim-tag-knowledge-assist-bg: #E7F8E9;
+        --uim-tag-knowledge-assist-color: #232421;
+        
+        --uim-tag-summarization-bg: #F7F3F4;
+        --uim-tag-summarization-color: #232421;
+      
+        --uim-tag-tool-bg: #EDF4FD;
+        --uim-tag-tool-color: #232421;
+
+        --mat-button-outlined-label-text-color:#0C4A8C;
+        --mat-button-outlined-border-color: #0C4A8C;
+        --mat-button-outlined-container-shape: 4px;
+      } */
 
       html {
         padding: 0;
@@ -204,8 +239,9 @@
       }
 
       .ui-modules-container {
-        padding-top: 24px;
+        margin-top: 24px;
         overflow: hidden;
+        border: 1px solid var(--uim-outline-variant);
       }
 
       .proxy-number {
