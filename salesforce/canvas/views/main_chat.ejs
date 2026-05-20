@@ -52,6 +52,8 @@
             'https://www.gstatic.com/agent-assist-ui-modules/staging/smart_reply.js',
           live_translation:
             'https://www.gstatic.com/agent-assist-ui-modules/staging/live_translation.js',
+          companion_agent:
+            'https://www.gstatic.com/agent-assist-ui-modules/staging/companion_agent.js',
         },
         prod: {
           common:
@@ -74,6 +76,8 @@
             'https://www.gstatic.com/agent-assist-ui-modules/v1/smart_reply.js',
           live_translation:
             'https://www.gstatic.com/agent-assist-ui-modules/v1/live_translation.js',
+          companion_agent:
+            'https://www.gstatic.com/agent-assist-ui-modules/staging/companion_agent.js',
         },
       };
 
@@ -125,7 +129,8 @@
         'knowledge_assist',
         'knowledge_assist_v2',
         'smart_reply',
-        'live_translation'
+        'live_translation',
+        'companion_agent'
       ];
       const componentsToLoad = components.filter((component) => cachedComponents.includes(component));
       switch (componentsToLoad[0]) {
@@ -360,6 +365,10 @@
             v-if="cachedComponents.includes('live_translation')"
             v-bind:namespace="namespace"
           ></agent-assist-live-translation>
+          <agent-assist-companion-agent
+            v-if="cachedComponents.includes('companion_agent')"
+            v-bind:namespace="namespace"
+          ></agent-assist-companion-agent>
         </div>
       </div>
       <q-dialog v-model="dialogModel">
@@ -433,6 +442,11 @@
               v-model="componentsArray"
               val="live_translation"
               label="Live Translation"
+            ></q-checkbox>
+            <q-checkbox
+              v-model="componentsArray"
+              val="companion_agent"
+              label="Companion Agent"
             ></q-checkbox>
 
             <div v-if="componentsArray.includes('container_v2')">
