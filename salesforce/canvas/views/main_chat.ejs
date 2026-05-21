@@ -28,58 +28,59 @@
     <script>
       const environment =
         localStorage.getItem('ui_modules_environment') || 'prod';
+      const languageCode = localStorage.getItem('ui_modules_language_code') || '';
       window._uiModuleFlags = { debug: true, environment};
 
-      const SCRIPT_SOURCES = {
-        staging: {
-          common:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/common.js',
-          container:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/container.js',
-          container_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/v2/container__de.js',
-          summarization:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/summarization.js',
-          knowledge_assist:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/knowledge_assist.js',
-          knowledge_assist_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/v2/knowledge_assist.js',
-          transcript:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/transcript.js',
-          agent_coaching:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/agent_coaching.js',
-          smart_reply:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/smart_reply.js',
-          live_translation:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/live_translation.js',
-          companion_agent:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/companion_agent.js',
-        },
-        prod: {
-          common:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/common.js',
-          container:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/container.js',
-          container_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/de/v2/container.js',
-          summarization:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/summarization.js',
-          knowledge_assist:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/knowledge_assist.js',
-          knowledge_assist_v2:
-            'https://www.gstatic.com/agent-assist-ui-modules/v2/knowledge_assist.js',
-          transcript:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/transcript.js',
-          agent_coaching:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/agent_coaching.js',
-          smart_reply:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/smart_reply.js',
-          live_translation:
-            'https://www.gstatic.com/agent-assist-ui-modules/v1/live_translation.js',
-          companion_agent:
-            'https://www.gstatic.com/agent-assist-ui-modules/staging/companion_agent.js',
-        },
-      };
+      // List of components that support multiple languages
+      const multiLanguageComponents = ['container_v2'];
+
+      // Helper function to build component URL with language code support
+      function getComponentUrl(component, env, langCode, localUrl) {
+        const baseUrl = 'https://www.gstatic.com/agent-assist-ui-modules';
+        const supportsMultiLanguage = multiLanguageComponents.includes(component);
+        
+        // Handle local environment
+        if (env === 'local') {
+          const suffix = (supportsMultiLanguage && langCode) ? `__${langCode}` : '';
+          return `${localUrl}/${component}${suffix}.js`;
+        }
+
+        // Extract version and component name
+        const versionMatch = component.match(/_v(\d+)$/);
+        const version = versionMatch ? `v${versionMatch[1]}` : 'v1';
+        const componentName = versionMatch ? component.replace(/_v\d+$/, '') : component;
+
+        // Construct component path based on environment patterns
+        let componentPath;
+        
+        if (env === 'staging') {
+          // Staging pattern: staging/{component} or staging/{version}/{component}
+          if (versionMatch) {
+            componentPath = `staging/${version}/${componentName}`;
+          } else {
+            componentPath = `staging/${componentName}`;
+          }
+          // Add language suffix before .js extension
+          const suffix = (supportsMultiLanguage && langCode) ? `__${langCode}` : '';
+          return `${baseUrl}/${componentPath}${suffix}.js`;
+        }
+
+        if (env === 'prod') {
+          // Prod pattern: {version}/{component} or special cases
+          if (component === 'companion_agent') {
+            componentPath = 'staging/companion_agent';
+          } else if (versionMatch) {
+            componentPath = `${version}/${componentName}`;
+          } else {
+            componentPath = `${version}/${componentName}`;
+          }
+          // Insert language path before component path
+          const langPath = (supportsMultiLanguage && langCode) ? `${langCode}/` : '';
+          return `${baseUrl}/${langPath}${componentPath}.js`;
+        }
+
+        return null;
+      }
 
       const USER_LOCAL_ENVIRONMENTS = {
         'gaborszekely@google.com':
@@ -102,12 +103,7 @@
 
       function loadScript(component) {
         const script = document.createElement('script');
-
-        const src =
-          environment === 'local'
-            ? `${localUrl}/${component}.js`
-            : SCRIPT_SOURCES[environment][component];
-
+        const src = getComponentUrl(component, environment, languageCode, localUrl);
         script.setAttribute('src', src);
         document.head.appendChild(script);
 
@@ -158,6 +154,7 @@
         --uim-title-medium: 500 1rem / 1.5rem 'Noto sans';
         --uim-label-large-font: 'Noto sans';
         --uim-background: #F3F3F3;
+        --uim-surface-container-highest: white;
         
         --uim-surface: #FFFFFF;
         --uim-surface-container: #FFFFFF;
@@ -338,6 +335,8 @@
             class="agent-assist-ui-modules"
             show-correctness-feedback="true"
             show-header="false"
+            handoff-summarization-enabled="true"
+            handoff-summarization-generator="projects/agent-assist-console-demo/locations/global/features/summarization/generators/Mjg2OTQ5MjMyMDc0OTc0ODIyNQ"
             v-bind:features="useConfiguredFeatures ? [] : features"
             v-bind:disabled-features="useConfiguredFeatures ? features : []"
             v-bind:use-configured-features="useConfiguredFeatures"
@@ -448,6 +447,18 @@
               val="companion_agent"
               label="Companion Agent"
             ></q-checkbox>
+
+            <div v-if="componentsArray.some(c => multiLanguageComponents.includes(c))">
+              <br /><br />
+              <b>Language Code (multi-language components)</b>
+              <br />
+              <q-select
+                v-model="languageCodeModel"
+                :options="languageCodeOptions"
+                label="Language Code"
+                clearable
+              ></q-select>
+            </div>
 
             <div v-if="componentsArray.includes('container_v2')">
               <br /><br />
@@ -562,6 +573,7 @@
             const cachedFeatures =
               localStorage.getItem('ui_modules_features') || '<%= features %>';
             const cachedUseConfiguredFeatures = localStorage.getItem('ui_modules_use_configured_features') === 'true';
+            const cachedLanguageCode = localStorage.getItem('ui_modules_language_code') || '';
             const cachedComponents = JSON.parse(
               localStorage.getItem('ui_modules_components')
             ) || ['container'];
@@ -586,6 +598,40 @@
             );
             const componentsArray = ref(cachedComponents);
             const environmentsModel = ref(cachedEnvironment);
+            const languageCodeModel = ref(cachedLanguageCode);
+            const multiLanguageComponents = ['container_v2'];
+            const languageCodeOptions = ref([
+              { label: 'Default / English', value: '' },
+              { label: 'Arabic (ar)', value: 'ar' },
+              { label: 'Chinese - Simplified (zh_cn)', value: 'zh_cn' },
+              { label: 'Croatian (hr)', value: 'hr' },
+              { label: 'English - Australia (en_au)', value: 'en_au' },
+              { label: 'English - Canada (en_ca)', value: 'en_ca' },
+              { label: 'English - UK (en_gb)', value: 'en_gb' },
+              { label: 'Filipino (fil)', value: 'fil' },
+              { label: 'French (fr)', value: 'fr' },
+              { label: 'French - Canada (fr_ca)', value: 'fr_ca' },
+              { label: 'German (de)', value: 'de' },
+              { label: 'Hindi (hi)', value: 'hi' },
+              { label: 'Hungarian (hu)', value: 'hu' },
+              { label: 'Italian (it)', value: 'it' },
+              { label: 'Japanese (ja)', value: 'ja' },
+              { label: 'Korean (ko)', value: 'ko' },
+              { label: 'Malay (ms)', value: 'ms' },
+              { label: 'Norwegian (no)', value: 'no' },
+              { label: 'Polish (pl)', value: 'pl' },
+              { label: 'Portuguese - Brazil (pt_br)', value: 'pt_br' },
+              { label: 'Romanian (ro)', value: 'ro' },
+              { label: 'Russian (ru)', value: 'ru' },
+              { label: 'Spanish (es)', value: 'es' },
+              { label: 'Swedish (sv)', value: 'sv' },
+              { label: 'Thai (th)', value: 'th' },
+              { label: 'Turkish (tr)', value: 'tr' },
+              { label: 'Vietnamese (vi)', value: 'vi' },
+            ]);
+            const handoffConfig = {
+              summarizationEnabled: true,
+            };
 
             // Fetch Dialogflow auth token.
             registerAuthToken(
@@ -800,6 +846,17 @@
                 reload = true;
               }
 
+              const newLanguageCode = (languageCodeModel.value && typeof languageCodeModel.value === 'object') 
+                ? languageCodeModel.value.value 
+                : (languageCodeModel.value || '');
+              if (newLanguageCode !== cachedLanguageCode) {
+                localStorage.setItem(
+                  'ui_modules_language_code',
+                  newLanguageCode
+                );
+                reload = true;
+              }
+
               const componentsArrayStr = JSON.stringify(componentsArray.value);
 
               if (componentsArrayStr !== JSON.stringify(cachedComponents)) {
@@ -837,6 +894,10 @@
               dialogModel,
               environmentsModel,
               useConfiguredFeatures,
+              multiLanguageComponents,
+              languageCodeModel,
+              languageCodeOptions,
+              handoffConfig,
               features,
               featuresArray,
               proxyServerEndpoint,
