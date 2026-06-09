@@ -47,7 +47,7 @@
 
         // Extract version and component name
         const versionMatch = component.match(/_v(\d+)$/);
-        const version = versionMatch ? `v${versionMatch[1]}` : 'v1';
+        let version = versionMatch ? `v${versionMatch[1]}` : 'v1';
         const componentName = versionMatch ? component.replace(/_v\d+$/, '') : component;
 
         // Construct component path based on environment patterns
@@ -69,8 +69,6 @@
           // Prod pattern: {version}/{component} or special cases
           if (component === 'companion_agent') {
             componentPath = 'staging/companion_agent';
-          } else if (versionMatch) {
-            componentPath = `${version}/${componentName}`;
           } else {
             componentPath = `${version}/${componentName}`;
           }
@@ -336,7 +334,7 @@
             show-correctness-feedback="true"
             show-header="false"
             handoff-summarization-enabled="true"
-            handoff-summarization-generator="projects/agent-assist-console-demo/locations/global/features/summarization/generators/Mjg2OTQ5MjMyMDc0OTc0ODIyNQ"
+            handoff-summarization-generator="projects/agent-assist-console-demo/locations/global/generators/Mjg2OTQ5MjMyMDc0OTc0ODIyNQ"
             v-bind:features="useConfiguredFeatures ? [] : features"
             v-bind:disabled-features="useConfiguredFeatures ? features : []"
             v-bind:use-configured-features="useConfiguredFeatures"
